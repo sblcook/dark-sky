@@ -149,12 +149,3 @@ class pyDarkSky:
         return Minutely(summary, icon, time, precipIntensity,
                         precipProbability)
 
-
-if __name__ == "__main__":
-    secret_key = "0ff61fb5c2d35db9ec1f92c56cd1e8c6"
-    latitude = 39.952708
-    longitude = -75.163292
-
-    phl_weather = pyDarkSky(secret_key, latitude, longitude)
-    pprint(phl_weather.minutely.precipProbability)
-    pprint(phl_weather.daily.windSpeed)
