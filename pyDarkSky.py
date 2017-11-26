@@ -18,8 +18,8 @@ class pyDarkSky:
         self.hourly = self._hourly()
         self.minutely = self._minutely()
         self.latitude = self.forecast['latitude']
-        self.latitude = self.forecast['longitude']
-        self.latitude = self.forecast['timezone']
+        self.longitude = self.forecast['longitude']
+        self.timezone = self.forecast['timezone']
 
     def _currently(self):
         current_weather = self.forecast['currently']
