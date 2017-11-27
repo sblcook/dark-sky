@@ -3,7 +3,7 @@ import os
 
 def lambda_handler(event, context):
     print("Received event: " + str(event))
-    valid_commands = ['precip', 'now', 'today', 'week']
+    valid_commands = ['precip', 'now', 'today', 'week', 'moon']
     
     command = event.get('Body')
     
@@ -11,6 +11,7 @@ def lambda_handler(event, context):
         message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
                   "<Response><Message>\nInvalid Command."\
                   "Commands are 'precip' for the precip probability"\
+                  ", 'moon' for the moon phase, "\
                   "and 'now' for the current weather\n</Message></Response>"
     else:
         forecast = pyDarkSky(os.environ['dark_sky_key'], os.environ['latitude'], os.environ['longitude']) 
@@ -20,6 +21,8 @@ def lambda_handler(event, context):
 
         elif command.lower() == 'now':
             message = currentWeather(forecast)  
+        elif command.lower() == 'moon':
+            message = moonPhase(forecast)
                       
     return message
     
@@ -52,3 +55,29 @@ def precip(forecast):
         
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
            "<Response><Message>\nPrecip for next hour (* = 10% chance):\n{}</Message></Response>".format(fig)
+
+def moonPhase(forecast):
+    mp = forecast.daily.moonPhase[0]
+    phase = ""
+
+    if mp <= 0.02:
+        phase = 'New Moon'
+    elif mp < 0.23:
+        phase = 'Waxing Crescent'
+    elif mp <= 0.27:
+        phase = 'First Quarter Moon'
+    elif mp < 0.48:
+        phase = 'Waxing Gibbous'
+    elif mp <= 0.52:
+        phase = 'Full Moon'
+    elif mp < 0.73:
+        phase = 'Waning Gibbous'
+    elif mp <= 0.77:
+        phase = 'Third Quarter Moon'
+    elif mp < 0.98:
+        phase = 'Waning Crescent'
+    elif mp <= 1:
+        phase = 'New Moon'
+
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
+           "<Response><Message>\nThe moon in Philadelphia is now a {}</Message></Response>".format(phase)
