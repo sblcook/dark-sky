@@ -5,7 +5,6 @@ interacting with the Dark Sky API.
 import requests
 from Weather import Currently, Daily, Hourly, Minutely
 from datetime import datetime
-from pprint import pprint
 
 
 class pyDarkSky:
