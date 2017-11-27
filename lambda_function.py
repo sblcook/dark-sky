@@ -1,5 +1,7 @@
 from pyDarkSky import pyDarkSky
 import os
+from datetime import datetime
+from dateutil import tz
 
 def lambda_handler(event, context):
     print("Received event: " + str(event))
@@ -9,17 +11,18 @@ def lambda_handler(event, context):
     
     if command.lower() not in valid_commands:
         message = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
-                  "<Response><Message>\nInvalid Command."\
-                  "Commands are 'precip' for the precip probability"\
-                  "and 'now' for the current weather\n</Message></Response>"
+                  "<Response><Message>\nInvalid Command. "\
+                  "Commands are 'precip' for the precip probability, "\
+                  "'now' for the current weather, and 'today' for today's weather\n</Message></Response>"
     else:
         forecast = pyDarkSky(os.environ['dark_sky_key'], os.environ['latitude'], os.environ['longitude']) 
     
         if command.lower() == "precip":
             message = precip(forecast)
-
         elif command.lower() == 'now':
             message = currentWeather(forecast)  
+        elif command.lower() == 'today':
+            message = todayWeather(forecast)
                       
     return message
     
@@ -52,3 +55,26 @@ def precip(forecast):
         
     return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
            "<Response><Message>\nPrecip for next hour (* = 10% chance):\n{}</Message></Response>".format(fig)
+
+def todayWeather(forecast):
+    eastern = tz.gettz('America/New_York')
+
+    today = ""
+    today += "Today's weather in Philadelphia: " + forecast.daily.summary[0] + "\n"
+    today += "High of " + str(int(forecast.daily.temperatureHigh[0])) + "℉ at "\
+          + datetime.fromtimestamp(forecast.daily.temperatureHighTime[0], eastern)\
+          .strftime('%H:%M') + "\n"
+    today += "Low of " + str(int(forecast.daily.temperatureLow[0])) + "℉ at "\
+          + datetime.fromtimestamp(forecast.daily.temperatureLowTime[0], eastern)\
+          .strftime('%H:%M') + "\n"
+    if forecast.daily.precipProbability[0] > 0:
+        today += "Chance of " + forecast.daily.precipType[0] + ": "\
+              + str(int(forecast.daily.precipProbability[0] * 100)) + "%\n"
+    today += "Sunrise: " + datetime.fromtimestamp(forecast.daily.sunriseTime[0], eastern)\
+          .strftime('%H:%M') + "\n"
+    today += "Sunset: " + datetime.fromtimestamp(forecast.daily.sunsetTime[0], eastern)\
+          .strftime('%H:%M') + "\n"
+    today += "UV Index: " + str(forecast.daily.uvIndex[0])
+
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"\
+           "<Response><Message>\n{}</Message></Response>".format(today)
